@@ -24,6 +24,8 @@ class GameScene: SKScene {
         
         self.addedFloor.anchorPoint = CGPointMake(0, 0.5)
         self.addedFloor.position = CGPointMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame) + (self.addedFloor.size.height / 2))
+        
+        
         //addFloor()
         
         
@@ -36,6 +38,7 @@ class GameScene: SKScene {
         background.size.height = self.frame.size.height
         //background.position = CGPointMake(CGRectGetMidX(self.frame), CGRectGetMidY(self.frame))
         addChild(background)
+        
         self.addChild(self.addedFloor) // add de vloer toe aan de background
     }
     
