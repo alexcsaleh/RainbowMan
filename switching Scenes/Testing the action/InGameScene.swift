@@ -13,7 +13,7 @@ import Foundation
 
 
 
-class InGameScene: SKScene {
+class InGameScene: SKScene, SKPhysicsContactDelegate {
     
     let spawningBar = SKSpriteNode(imageNamed: "infiniteScrollingGround")
     let heroStatic = SKSpriteNode(imageNamed: "HeroStatic")
@@ -33,21 +33,54 @@ class InGameScene: SKScene {
     var score = 0
     
     
+    
+    enum ColliderType:UInt32 {
+        case Hero = 1
+        case Block = 2
+    }
+    
+    
+    
+    
     override func didMoveToView(view: SKView) {
         println("We are at the new scene!")
         addBG() // adding the background
+        
+        self.physicsWorld.contactDelegate = self
+        
         self.spawningBar.anchorPoint = CGPointMake(0.15, 0.5)
         self.spawningBar.position = CGPointMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame) + (self.spawningBar.size.height / 2))
+        
         self.origRunningFloorPositionXPoint = self.spawningBar.position.x
         self.maxBarX = self.spawningBar.size.width - self.frame.size.width// geeft de total width van de spawningBar aan
         self.maxBarX *= -1
         self.heroBaseline = self.spawningBar.position.y - (self.spawningBar.size.height / 20 + 56.5)
         self.heroStatic.position = CGPointMake(CGRectGetMinX(self.frame) + (self.heroStatic.size.width / 2), self.heroBaseline)
         
+        self.heroStatic.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(self.heroStatic.size.width / 2.5))
+        self.heroStatic.physicsBody?.affectedByGravity = false
+        self.heroStatic.physicsBody?.categoryBitMask = ColliderType.Hero.rawValue
+        self.heroStatic.physicsBody?.contactTestBitMask = ColliderType.Block.rawValue
+        self.heroStatic.physicsBody?.collisionBitMask = ColliderType.Block.rawValue
+        
+        
         self.block.position = (CGPointMake(CGRectGetMaxX(self.frame) + (self.block.size.width) + 160, self.heroBaseline + -27.25)) // hier plaats ik de random gegenereerde block
         self.blockDouble.position = (CGPointMake(CGRectGetMaxX(self.frame) + (self.block.size.width) + 160, self.heroBaseline + -17.25))
         
         self.origRunningBlockPositionXPoint = self.block.position.x
+        
+        self.block.physicsBody = SKPhysicsBody(rectangleOfSize: self.block.size)
+        self.block.physicsBody?.dynamic = false
+        self.block.physicsBody?.categoryBitMask = ColliderType.Block.rawValue
+        self.block.physicsBody?.contactTestBitMask = ColliderType.Hero.rawValue
+        self.block.physicsBody?.collisionBitMask = ColliderType.Hero.rawValue
+        
+        self.blockDouble.physicsBody = SKPhysicsBody(rectangleOfSize: self.block.size)
+        self.blockDouble.physicsBody?.dynamic = false
+        self.blockDouble.physicsBody?.categoryBitMask = ColliderType.Block.rawValue
+        self.blockDouble.physicsBody?.contactTestBitMask = ColliderType.Hero.rawValue
+        self.blockDouble.physicsBody?.collisionBitMask = ColliderType.Hero.rawValue
+        
         
         
         self.block.name = "block"
@@ -89,6 +122,26 @@ class InGameScene: SKScene {
     
     
     var blockStatuses:Dictionary<String, BlockStatus> = [:]
+    
+    
+     func didBeginContact(contact: SKPhysicsContact) { // In this func the following will take place once collision contact has been made.
+        died()
+    }
+    
+    
+    func died() {
+        if let scene = GameScene.unarchiveFromFile("GameScene") as? GameScene {// This func changes the scene when the player dies back to the GameScene.
+            var scene = GameScene(size: self.size)
+            let skView = self.view as SKView!
+            skView.ignoresSiblingOrder = true
+            scene.scaleMode = .ResizeFill
+            scene.size = skView.bounds.size
+            scene.anchorPoint = CGPointMake(CGRectGetMidX(GameScene().frame), CGRectGetMidY(GameScene().frame))
+            skView.presentScene(scene)
+            
+    }
+    }
+    
     
 
 
